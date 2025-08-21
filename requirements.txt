@@ -1,8 +1,14 @@
-fastapi==0.114.0
-uvicorn==0.23.2
-pydantic==2.8.0
-transformers==4.55.2
-torch==2.8.0+cu126
-python-dotenv==1.1.1
-requests==2.32.4
+# Core web server
+fastapi>=0.115.2,<1.0.0
+uvicorn>=0.34.0,<1.0.0
+starlette>=0.46.2,<1.0.0
+pydantic>=2.11.0,<3.0.0
+
+# AI/ML
+transformers==4.40.0
+torch==2.1.0
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
 pyngrok==7.3.0
