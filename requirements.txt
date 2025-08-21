@@ -5,8 +5,8 @@ starlette>=0.46.2,<1.0.0
 pydantic>=2.11.0,<3.0.0
 
 # AI/ML
-transformers==4.40.0
-torch
+transformers==4.44.0
+torch==2.8.0+cu126
 
 # Utilities
 python-dotenv==1.0.0
