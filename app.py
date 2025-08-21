@@ -1,56 +1,44 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+# app.py
+from fastapi import FastAPI, Request
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
-from pyngrok import ngrok
-import os
-import uvicorn
+import requests
 
-# --- Hugging Face Authentication ---
-HF_TOKEN = os.getenv("HF_TOKEN", "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")
-MODEL_NAME = "openai/gpt-oss-7b"
+app = FastAPI(title="NeurodivergentHelper")
 
-# --- Load Model and Tokenizer ---
-print("Loading model... This may take a few minutes")
+# Hugging Face authentication
+HF_TOKEN = "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"  # your read-only token
+headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+
+# Load model and tokenizer (non-gated, GPU-compatible example)
+MODEL_NAME = "TheBloke/GPT-OSS-6B-GGUF"
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=HF_TOKEN)
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    device_map="auto",          # Automatically choose GPU if available
-    torch_dtype=torch.float16,  # Reduce VRAM usage
-    use_auth_token=HF_TOKEN
-)
-print("Model loaded successfully.")
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto", use_auth_token=HF_TOKEN)
+model.to(device)
 
-# --- Load Base Prompt ---
-with open("/content/NeurodivergentHelper.txt", "r", encoding="utf-8") as f:
-    BASE_PROMPT = f.read()
+# Load system prompt from GitHub
+PROMPT_URL = "https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/prompt.txt"
+response = requests.get(PROMPT_URL, headers=headers)
+DEFAULT_PROMPT = response.text if response.status_code == 200 else "You are NeurodivergentHelper..."
 
-# --- FastAPI App ---
-app = FastAPI()
-
-class Message(BaseModel):
-    user_input: str
+@app.get("/")
+def root():
+    return {"message": "NeurodivergentHelper API is live!"}
 
 @app.post("/query")
-async def query(message: Message):
-    prompt = f"{BASE_PROMPT}\nUser: {message.user_input}\nNeurodivergentHelper:"
-    
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-    outputs = model.generate(
-        **inputs,
-        max_new_tokens=300,
-        do_sample=True,
-        top_p=0.9,
-        temperature=0.8
-    )
-    
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    response = response.replace(BASE_PROMPT, "").strip()
-    return {"response": response}
+async def query(request: Request):
+    data = await request.json()
+    user_input = data.get("prompt", "")
 
-# --- Start ngrok Tunnel ---
-public_url = ngrok.connect(8000)
-print("Public URL:", public_url)
+    if not user_input:
+        return {"error": "No prompt provided."}
 
-# --- Run FastAPI ---
-uvicorn.run(app, host="0.0.0.0", port=8000)
+    full_prompt = f"{DEFAULT_PROMPT}\n\nUser: {user_input}\nNeurodivergentHelper:"
+
+    inputs = tokenizer(full_prompt, return_tensors="pt").to(device)
+    outputs = model.generate(**inputs, max_new_tokens=150)
+    response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    return {"response": response_text}
