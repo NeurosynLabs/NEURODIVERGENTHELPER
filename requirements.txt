@@ -1,0 +1,23 @@
+# FastAPI for backend API
+fastapi==0.114.0
+
+# ASGI server
+uvicorn==0.23.2
+
+# Pydantic for data validation
+pydantic==2.8.0
+
+# Hugging Face transformers for AI model
+transformers==4.40.0
+
+# PyTorch for model execution (CPU/GPU)
+torch==2.1.0
+
+# Optional: for connecting to Supabase if using
+supabase==2.4.0
+
+# Optional: environment variables
+python-dotenv==1.0.0
+
+# Optional: any HTTP requests
+requests==2.31.0
