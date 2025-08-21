@@ -11,7 +11,7 @@ HF_TOKEN = "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"  # your read-only token
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 # Load model and tokenizer (non-gated, GPU-compatible example)
-MODEL_NAME = "TheBloke/GPT-OSS-6B-GGUF"
+MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=HF_TOKEN)
