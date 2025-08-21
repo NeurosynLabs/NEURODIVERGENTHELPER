@@ -1,25 +1,31 @@
-# app.py
-
-import requests
 from fastapi import FastAPI
 from pydantic import BaseModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
-
-# Hugging Face token from environment variable
+from pyngrok import ngrok
 import os
-HF_TOKEN = os.getenv("HF_TOKEN")
+import uvicorn
 
-# Model & tokenizer
-MODEL_NAME = "openai/gpt-oss-20b"
+# --- Hugging Face Authentication ---
+HF_TOKEN = os.getenv("HF_TOKEN", "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")
+MODEL_NAME = "openai/gpt-oss-7b"
+
+# --- Load Model and Tokenizer ---
+print("Loading model... This may take a few minutes")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_auth_token=HF_TOKEN)
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto", use_auth_token=HF_TOKEN)
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    device_map="auto",          # Automatically choose GPU if available
+    torch_dtype=torch.float16,  # Reduce VRAM usage
+    use_auth_token=HF_TOKEN
+)
+print("Model loaded successfully.")
 
-# Load NeurodivergentHelper prompt dynamically from GitHub
-PROMPT_URL = "https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/NeurodivergentHelper/NeurodivergentHelper.txt"
-BASE_PROMPT = requests.get(PROMPT_URL).text
+# --- Load Base Prompt ---
+with open("/content/NeurodivergentHelper.txt", "r", encoding="utf-8") as f:
+    BASE_PROMPT = f.read()
 
-# FastAPI app
+# --- FastAPI App ---
 app = FastAPI()
 
 class Message(BaseModel):
@@ -28,13 +34,23 @@ class Message(BaseModel):
 @app.post("/query")
 async def query(message: Message):
     prompt = f"{BASE_PROMPT}\nUser: {message.user_input}\nNeurodivergentHelper:"
+    
     inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-    outputs = model.generate(**inputs, max_new_tokens=300)
+    outputs = model.generate(
+        **inputs,
+        max_new_tokens=300,
+        do_sample=True,
+        top_p=0.9,
+        temperature=0.8
+    )
+    
     response = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    # Remove prompt echo
     response = response.replace(BASE_PROMPT, "").strip()
     return {"response": response}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# --- Start ngrok Tunnel ---
+public_url = ngrok.connect(8000)
+print("Public URL:", public_url)
+
+# --- Run FastAPI ---
+uvicorn.run(app, host="0.0.0.0", port=8000)
