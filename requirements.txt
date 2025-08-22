@@ -1,14 +1,9 @@
-# Core web server
 fastapi>=0.115.2,<1.0.0
 uvicorn>=0.34.0,<1.0.0
 starlette>=0.46.2,<1.0.0
 pydantic>=2.11.0,<3.0.0
-
-# AI/ML
 transformers==4.44.0
-torch==2.8.0+cu126
-
-# Utilities
-python-dotenv==1.0.0
+torch==2.8.0         # or +cu126 if GPU matches
 requests==2.31.0
-pyngrok==7.3.0
+python-dotenv==1.0.0
+gradio==3.52.2       # optional
