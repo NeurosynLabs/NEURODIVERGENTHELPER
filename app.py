@@ -1,17 +1,10 @@
 # app.py
-import os
-import requests
-import torch
 from fastapi import FastAPI, Request
 from transformers import AutoModelForCausalLM, AutoTokenizer
-
-# Optional: Gradio interface
-USE_GRADIO = True
-if USE_GRADIO:
-    import gradio as gr
-    import asyncio
-    import nest_asyncio
-    nest_asyncio.apply()
+import torch
+import requests
+import os
+import uvicorn
 
 # --- FastAPI setup ---
 app = FastAPI(title="NeurodivergentHelper")
@@ -42,7 +35,7 @@ def load_model():
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             device_map="auto",
-            torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+            torch_dtype=torch.float16 if device=="cuda" else torch.float32,
             use_auth_token=HF_TOKEN,
             trust_remote_code=True
         )
@@ -75,24 +68,6 @@ async def query(request: Request):
 
     return {"response": response_text}
 
-# --- Optional Gradio interface ---
-if USE_GRADIO:
-    def gr_query(prompt):
-        class DummyRequest:
-            async def json(self):
-                return {"prompt": prompt}
-        return asyncio.run(query(DummyRequest()))["response"]
-
-    iface = gr.Interface(
-        fn=gr_query,
-        inputs="text",
-        outputs="text",
-        title="NeurodivergentHelper"
-    )
-    # Use the Render-assigned PORT
-    iface.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 8000)))
-
-# --- Run FastAPI normally (Render will use this) ---
+# --- Run FastAPI app (Render will run it automatically) ---
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
