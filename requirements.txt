@@ -6,11 +6,16 @@ pydantic>=2.11.0,<3.0.0
 
 # AI/ML
 transformers>=4.44.0
-torch>=2.8.0         # or +cu126 if GPU matches
+torch>=2.8.0
+
+# Optional GPU acceleration
+accelerate>=0.23.0
+bitsandbytes>=0.41.0
 
 # Utilities
 requests>=2.31.0
 python-dotenv>=1.0.0
+loguru>=0.7.0
 
-# Optional for web interface
+# Web interface
 gradio>=3.52.2
