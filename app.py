@@ -1,18 +1,23 @@
 # app.py
+import os
+import requests
+import torch
 from fastapi import FastAPI, Request
 from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
-import requests
-import threading
-import uvicorn
-from pyngrok import ngrok
-import os
+
+# Optional: Gradio interface
+USE_GRADIO = True
+if USE_GRADIO:
+    import gradio as gr
+    import asyncio
+    import nest_asyncio
+    nest_asyncio.apply()
 
 # --- FastAPI setup ---
 app = FastAPI(title="NeurodivergentHelper")
 
 # --- Hugging Face ---
-HF_TOKEN = os.environ.get("HF_TOKEN")  # only call the variable name
+HF_TOKEN = os.environ.get("HF_TOKEN")
 MODEL_NAME = "meta-llama/Llama-3.2-1B-Instruct"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -37,9 +42,9 @@ def load_model():
         model = AutoModelForCausalLM.from_pretrained(
             MODEL_NAME,
             device_map="auto",
-            torch_dtype=torch.float16 if device=="cuda" else torch.float32,
+            torch_dtype=torch.float16 if device == "cuda" else torch.float32,
             use_auth_token=HF_TOKEN,
-            trust_remote_code=True  # fixes LLaMA3 rope_scaling
+            trust_remote_code=True
         )
         model.to(device)
         print("✅ Model loaded successfully!")
@@ -70,12 +75,24 @@ async def query(request: Request):
 
     return {"response": response_text}
 
-# --- Run FastAPI in background ---
-def run_api():
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# --- Optional Gradio interface ---
+if USE_GRADIO:
+    def gr_query(prompt):
+        class DummyRequest:
+            async def json(self):
+                return {"prompt": prompt}
+        return asyncio.run(query(DummyRequest()))["response"]
 
-threading.Thread(target=run_api, daemon=True).start()
+    iface = gr.Interface(
+        fn=gr_query,
+        inputs="text",
+        outputs="text",
+        title="NeurodivergentHelper"
+    )
+    # Use the Render-assigned PORT
+    iface.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 8000)))
 
-# --- Expose via ngrok ---
-public_url = ngrok.connect(8000)
-print("NeurodivergentHelper is live at:", public_url)
+# --- Run FastAPI normally (Render will use this) ---
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
