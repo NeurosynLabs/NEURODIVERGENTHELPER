@@ -4,14 +4,16 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import requests
 import os
+import threading
 import uvicorn
+import gradio as gr
 
 # --- FastAPI setup ---
 app = FastAPI(title="NeurodivergentHelper")
 
 # --- Hugging Face ---
 HF_TOKEN = os.environ.get("HF_TOKEN")
-MODEL_NAME = "stabilityai/stablelm-zephyr-3b"  # updated model
+MODEL_NAME = "model-hub/stablelm-zephyr-3b"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # --- Session memory ---
@@ -68,6 +70,30 @@ async def query(request: Request):
 
     return {"response": response_text}
 
-# --- Run FastAPI app (Render will run it automatically) ---
+# --- Gradio interface ---
+def gradio_chat(user_input, history=[]):
+    SESSION_MEMORY.append(f"User: {user_input}")
+    load_model()
+    context_text = "\n".join(SESSION_MEMORY[-5:])
+    full_prompt = f"{DEFAULT_PROMPT}\n\n{context_text}\nNeurodivergentHelper:"
+    inputs = tokenizer(full_prompt, return_tensors="pt").to(device)
+    outputs = model.generate(**inputs, max_new_tokens=150)
+    response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    SESSION_MEMORY.append(f"NeurodivergentHelper: {response_text}")
+    history.append((user_input, response_text))
+    return history, history
+
+def launch_gradio():
+    iface = gr.ChatInterface(
+        gradio_chat,
+        title="NeurodivergentHelper",
+        description="Chat with your neurodivergent-friendly assistant.",
+        allow_flagging="never"
+    )
+    iface.launch(server_name="0.0.0.0", server_port=int(os.environ.get("PORT", 8000)))
+
+# --- Run FastAPI and Gradio concurrently ---
+threading.Thread(target=launch_gradio, daemon=True).start()
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
