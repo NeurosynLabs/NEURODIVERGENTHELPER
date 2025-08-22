@@ -13,7 +13,7 @@ app = FastAPI(title="NeurodivergentHelper")
 
 # --- Hugging Face ---
 HF_TOKEN = os.environ.get("HF_TOKEN")
-MODEL_NAME = "model-hub/stablelm-zephyr-3b"
+MODEL_NAME = "openai/gpt-oss-120b"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # --- Session memory ---
