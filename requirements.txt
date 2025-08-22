@@ -1,21 +1,21 @@
-# Core web server
-fastapi>=0.115.2,<1.0.0
-uvicorn>=0.34.0,<1.0.0
-starlette>=0.46.2,<1.0.0
-pydantic>=2.11.0,<3.0.0
+# --- Core Web Server ---
+fastapi>=0.115.2
+uvicorn>=0.23.0
+starlette>=0.46.2
+pydantic>=2.11.0
 
-# AI/ML
+# --- AI/ML ---
+# Install torch with CUDA 12.1 (adjust if your GPU uses a different CUDA version)
+torch>=2.8.0+cu121 --index-url https://download.pytorch.org/whl/cu121
 transformers>=4.44.0
-torch>=2.8.0
-
-# Optional GPU acceleration
 accelerate>=0.23.0
 bitsandbytes>=0.41.0
 
-# Utilities
+# --- Utilities ---
 requests>=2.31.0
 python-dotenv>=1.0.0
 loguru>=0.7.0
+nest-asyncio>=1.5.8
 
-# Web interface
+# --- Web Interface ---
 gradio>=3.52.2
