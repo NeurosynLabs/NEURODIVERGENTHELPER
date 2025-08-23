@@ -2,8 +2,8 @@
 # NeurodivergentHelper CPU Dockerfile
 # -------------------------------
 
-# Base image with Python 3.13
-FROM python:3.13-slim
+# Base image with Python 3.12
+FROM python:3.12-slim
 
 # Set non-interactive mode for apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -31,21 +31,15 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # --- Expose ports ---
+# FastAPI default: 8000
+# Gradio default: 7860
 EXPOSE 8000
-EXPOSE 7860
-
-# --- Environment variables ---
-ENV HF_TOKEN=""
-ENV PROMPT_URL="https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/prompt.txt"
-
-# --- Default entrypoint ---
-CMD ["python3", "app.py"]EXPOSE 8000
 EXPOSE 7860
 
 # --- Environment variables ---
 # HF_TOKEN should be provided at runtime (docker run -e HF_TOKEN=...)
 ENV HF_TOKEN=""
-ENV PROMPT_URL="https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/prompt.txt"
+ENV PROMPT_URL="https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/NeurodivergentHelper.txt"
 
 # --- Default entrypoint ---
 # Option 1: run FastAPI
