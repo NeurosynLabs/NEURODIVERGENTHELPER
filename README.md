@@ -18,6 +18,11 @@ NeurodivergentHelper is an advanced emotional intelligence and linguistic suppor
 - Adaptive session memory tracks the last 5 user interactions for context-aware responses.
 - Flexible integration for journaling, website, or web-based interfaces.
 
+  * Alpha versions:
+  On Poe:  https://poe.com/NeurodivergentCalm
+On Facebook Messenger: https://m.me/1944934973012617?is_ai=1
+    
+
 **Lightweight CPU Version Notes:**
 
 - Runs entirely on CPU (`device = "cpu"`) due to GPU limitations on Windows.
