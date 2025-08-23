@@ -4,7 +4,7 @@
 **Website Integration:** https://neurodivergentexperiences.com  
 **Purpose:** Intended to be embedded in the website via an iframe. This is the **free version** of the prompt. A paid version with additional modules, settings, and features is under development. This system could also be extended to Discord (both free and paid versions).
 
-Replit: GPU version works for development/testing; $200nish/year plan covers 1-year hosting: https://replit.com/pricing
+Replit: GPU version works for development/testing; $200ish/year plan covers 1-year hosting: https://replit.com/pricing
 
 Alternative: OpenAI. 
 
