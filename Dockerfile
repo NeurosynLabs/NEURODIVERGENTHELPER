@@ -1,9 +1,9 @@
 # -------------------------------
-# NeurodivergentHelper GPU Dockerfile
+# NeurodivergentHelper CPU Dockerfile
 # -------------------------------
 
-# Base image with Python 3.12 + CUDA support
-FROM nvidia/cuda:12.1.105-cudnn8-runtime-ubuntu22.04
+# Base image with Python 3.13
+FROM python:3.13-slim
 
 # Set non-interactive mode for apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -14,9 +14,8 @@ RUN apt-get update && \
         git \
         curl \
         wget \
-        python3-pip \
-        python3-dev \
         build-essential \
+        python3-dev \
         && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
@@ -32,9 +31,15 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # --- Expose ports ---
-# FastAPI default: 8000
-# Gradio default: 7860
 EXPOSE 8000
+EXPOSE 7860
+
+# --- Environment variables ---
+ENV HF_TOKEN=""
+ENV PROMPT_URL="https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/prompt.txt"
+
+# --- Default entrypoint ---
+CMD ["python3", "app.py"]EXPOSE 8000
 EXPOSE 7860
 
 # --- Environment variables ---
