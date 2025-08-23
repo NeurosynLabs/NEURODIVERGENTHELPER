@@ -12,7 +12,7 @@ app = FastAPI(title="NeurodivergentHelper")
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
 PROMPT_URL = os.environ.get(
     "PROMPT_URL",
-    "https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/prompt.txt"
+    "https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/NeurodivergentHelper.txt"
 )
 headers = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
 with requests.get(PROMPT_URL, headers=headers) as response:
@@ -42,10 +42,11 @@ async def query(request: Request):
     tokenizer, model, active_model = load_model()
 
     SESSION_MEMORY.append(f"User: {user_input}")
-    context_text = "\n".join(SESSION_MEMORY[-5:])
+    context_text = "\n".join(SESSION_MEMORY[-5:])  # last 5 entries for context
     full_prompt = f"{DEFAULT_PROMPT}\n\n{context_text}\nNeurodivergentHelper:"
 
-    inputs = tokenizer(full_prompt, return_tensors="pt").to(model.device)
+    # CPU-friendly tokenizer call with truncation
+    inputs = tokenizer(full_prompt, return_tensors="pt", truncation=True).to(model.device)
     outputs = model.generate(**inputs, max_new_tokens=150)
     response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
@@ -66,7 +67,8 @@ def gradio_chat(user_input, history=[]):
     context_text = "\n".join(SESSION_MEMORY[-5:])
     full_prompt = f"{DEFAULT_PROMPT}\n\n{context_text}\nNeurodivergentHelper:"
 
-    inputs = tokenizer(full_prompt, return_tensors="pt").to(model.device)
+    # CPU-friendly tokenizer call with truncation
+    inputs = tokenizer(full_prompt, return_tensors="pt", truncation=True).to(model.device)
     outputs = model.generate(**inputs, max_new_tokens=150)
     response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
@@ -83,7 +85,7 @@ if __name__ == "__main__":
         inputs="text",
         outputs=["text", "state"],
         title="NeurodivergentHelper",
-        description="Ask questions and get AI responses (GPU only)"
+        description="Ask questions and get AI responses (CPU-only)"
     )
     interface.launch(server_name="0.0.0.0", server_port=7860)
     # Or if you prefer FastAPI:
