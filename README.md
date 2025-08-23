@@ -1,206 +1,195 @@
-# NeurodivergentHelper
+# NeurodivergentHelper – Lightweight CPU Version
 
-NeurodivergentHelper is an advanced emotional intelligence and linguistic support system designed for neurodivergent individuals navigating complex emotional and social landscapes. It integrates trauma-informed and sensory-aware design principles, supporting cognitive reframing, emotional regulation, mindfulness, and internal system harmony.
-
-This repository provides a **CPU-compatible setup**, making it easy to self-host on Windows, Linux, or WSL2 without GPU requirements.
-
----
-
-## Features
-
-- Supports multiple neurotypes (autistic, ADHD, SPD, trauma-affected)
-- Implements evidence-based therapeutic modalities (CBT, DBT, ACT, IFS)
-- FastAPI API for programmatic access
-- Gradio UI for interactive chat
-- Session memory with last 5 interactions
-- Adaptive learning engine (session-level)
-- Fully CPU-compatible, no GPU required
+**Addressed to:** Chuck Merriman and Kyle Schneider  
+**Website Integration:** https://neurodivergentexperiences.com  
+**Purpose:** Intended to be embedded in the website via an iframe. This is the **free version** of the prompt. A paid version with additional modules, settings, and features is under development. This system could also be extended to Discord (both free and paid versions).
 
 ---
 
-## System Requirements (CPU)
+## Overview
 
-- **OS:** Windows 11, Linux, macOS, or WSL2
-- **RAM:** 8 GB minimum (16+ GB recommended)
-- **CPU:** Modern multi-core CPU (Intel i5/Ryzen 5 or better)
-- **Disk:** 5 GB free for model and cache
-- **GPU:** Optional — CPU-only setup supported
+NeurodivergentHelper is an advanced emotional intelligence and linguistic support system purpose-built for neurodivergent individuals navigating complex emotional and social landscapes. It is trauma-informed, sensory-aware, and designed to prioritize psychological safety and respect for neurodiversity.
+
+**Capabilities:**
+
+- Cognitive reframing, emotional regulation, mindfulness, and internal system harmony.
+- Supports neurotypes including autistic, ADHD, SPD, and trauma-affected individuals.
+- Sensitive emotional tone analysis, boundary negotiation, and interpersonal conflict guidance.
+- Adaptive session memory tracks the last 5 user interactions for context-aware responses.
+- Flexible integration for journaling, website, or web-based interfaces.
+
+**Lightweight CPU Version Notes:**
+
+- Runs entirely on CPU (`device = "cpu"`) due to GPU limitations on Windows.
+- Slower responses expected compared to GPU-based models.
+- Developer has yet to test and troubleshoot all errors; project is open for feedback.
 
 ---
 
-## Folder Structure
+## System Requirements
+
+**CPU Version (Lightweight)**
+
+- OS: Windows 10/11, macOS, or Linux
+- RAM: 8 GB minimum, 16 GB recommended
+- Disk: 2 GB for dependencies and model cache
+
+**GPU Version (Future / Replit)**
+
+- GPU: NVIDIA CUDA-compatible GPU (12.1)
+- VRAM: Minimum 6–8 GB
+- OS: Linux preferred for local GPU hosting
+
+---
+
+## File Structure
 
 ```
 NeurodivergentHelper/
-├── app.py
-├── models.py
-├── requirements.txt
-├── Dockerfile
-├── .gitignore
-├── NeurodivergentHelper.txt
+├─ app.py
+├─ models.py
+├─ requirements.txt
+├─ Dockerfile
+├─ .gitignore
+├─ NeurodivergentHelper.txt
+└─ README.md
 ```
+
+### Key Files
+
+- `app.py` – FastAPI and Gradio integration; entrypoint for API and optional web interface.
+- `models.py` – Handles model loading and selection.
+- `requirements.txt` – All dependencies for CPU execution.
+- `Dockerfile` – Container setup (CPU-compatible).
+- `NeurodivergentHelper.txt` – System prompt text for the bot.
+- `.gitignore` – Excludes caches, virtual environments, and temporary files.
 
 ---
 
-## Setup
+## Configuration
 
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/NeurosynLabs/NeurodivergentHelper.git
-cd NeurodivergentHelper
-```
-
-### 2. Install dependencies (CPU-only)
-
-```bash
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-### 3. Hugging Face Token Setup (Secure)
-
-1. **Create a Hugging Face account** if you don’t have one: [https://huggingface.co/join](https://huggingface.co/join)
-
-2. **Generate an access token**:
-
-   - Go to **Settings → Access Tokens → New Token**
-   - Copy the generated token (keep it private!)
-
-3. **Use the token securely**:
-
-   **Option 1 (recommended): Environment variable**  
-
-   Ensure `app.py` reads the token from the environment:
-
-   ```python
-   import os
-   HF_TOKEN = os.environ.get("HF_TOKEN", "")
-   ```
-
-   Then set the environment variable:
-
-   - **Linux/macOS:**
+1. **Hugging Face Token**  
+   - Do **not** store HF_TOKEN in `app.py`.  
+   - Create a token on Hugging Face and export it as an environment variable:  
      ```bash
-     export HF_TOKEN="your_generated_token_here"
+     export HF_TOKEN="your_token_here"
      ```
-   - **Windows CMD:**
-     ```cmd
-     set HF_TOKEN=your_generated_token_here
+   - `app.py` references it automatically for model downloads.
+
+2. **Optional Custom Model**  
+   - Set `MODEL_NAME` environment variable if you want a different Hugging Face model:  
+     ```bash
+     export MODEL_NAME="username/custom-model"
      ```
-   - **PowerShell:**
-     ```powershell
-     $env:HF_TOKEN="your_generated_token_here"
-     ```
 
-   **Option 2 (placeholder in code)**
-
-   Replace the variable in `app.py` with a placeholder (never your real token):
-
-   ```python
-   HF_TOKEN = "YOUR_HF_TOKEN_HERE"
-   ```
-
-   > ⚠️ Never commit your actual Hugging Face token to the repository. Always use environment variables in production or public repos.
-
-Optionally, set the prompt URL:
+3. **Optional .env File**
 
 ```bash
-export PROMPT_URL="https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/NeurodivergentHelper.txt"
+# .env example
+HF_TOKEN=your_huggingface_token
+MODEL_NAME=EleutherAI/gpt-neo-125M
 ```
 
 ---
 
-## Running Locally
+## CPU Model Recommendations
 
-### Option 1: FastAPI API
+Due to GPU limitations, the lightweight version is CPU-only. The following models are included in `models.py`:
 
-```bash
-uvicorn app:app --host 0.0.0.0 --port 8000
-```
+| Model Name                  | Notes                                              | Performance on CPU |
+|------------------------------|--------------------------------------------------|------------------|
+| `EleutherAI/gpt-neo-125M`   | Small GPT-Neo model, fast on CPU                 | Recommended      |
+| `distilgpt2`                 | Very small GPT-2 variant, minimal memory usage  | Slightly less capable |
+| `MODEL_NAME` (optional env)  | Custom Hugging Face model defined by user       | Depends on model size |
 
-Visit: `http://localhost:8000`
+**How it works:**  
+- Tries models in order until one loads successfully.  
+- Runs entirely on CPU (`device = "cpu"`).  
+- Slower than GPU-based models for complex prompts.
 
 ---
 
-### Option 2: Gradio UI
+## Hosting Alternatives and Past Attempts
+
+- **Windows WSL2:** GPU passthrough not possible.  
+- **VMware:** GPU passthrough unsupported on Windows host; Linux base OS required.  
+- **Google Colab:** Works but static link required for iframe embedding; ngrok failed for persistent static link.  
+- **Render / other cloud services:** Tested but unsuitable for GPU or static link needs.  
+- **Replit:** GPU version works for development/testing; $200/year plan covers 1-year hosting.  
+- **Cloudflare Tunnel + DuckDNS:** Recommended for self-hosted CPU version to provide sub-domain access.  
+
+**Website Integration:**  
+- Embedded via iframe at https://neurodivergentexperiences.com.  
+- Paid version under development, includes feature-rich modules and token-based access.  
+- Firebase + Stripe can handle user logins, payment splits, and webhook-based feature unlocks.  
+- Discord bot integration possible (free and paid versions).
+
+---
+
+## Known Limitations
+
+- CPU-only version is slower than GPU models.  
+- Session memory limited to last 5 prompts.  
+- Some Hugging Face models may require more RAM.  
+- Developer has yet to test all edge cases; feedback welcome.  
+- Free CPU version intended for local testing only; GPU hosting requires Replit subscription.
+
+---
+
+## Getting Started
 
 ```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Set Hugging Face token
+export HF_TOKEN="your_token_here"
+
+# Optional: specify custom model
+export MODEL_NAME="username/custom-model"
+
+# Run locally with CPU
 python app.py
 ```
 
-Visit: `http://localhost:7860`
-
----
-
-## Docker (CPU-only)
-
-### Build Docker image
-
-```bash
-docker build -t neurodivergenthelper:cpu .
-```
-
-### Run Docker container
-
-```bash
-docker run -it --rm -p 7860:7860 -e HF_TOKEN="your_generated_token_here" neurodivergenthelper:cpu
-```
-
----
-
-## Models
-
-CPU-friendly recommended models:
-
-- `EleutherAI/gpt-neo-125M` (default)
-- `distilgpt2` (fallback)
-
-Larger models may fail on CPU due to memory constraints.
-
-### Optional: Model Override
-
-Set the environment variable to use a different Hugging Face model:
-
-```bash
-export MODEL_NAME="EleutherAI/gpt-neo-125M"
-```
-
-Then restart the app. Make sure the model is CPU-friendly if not using a GPU.
-
----
-
-## Session Memory
-
-- Stores the last 5 exchanges per session.
-- To clear session memory during runtime:
-
-```python
-from app import SESSION_MEMORY
-SESSION_MEMORY.clear()
-```
-
-- Useful if context is getting too long or unwanted.
+- Access FastAPI: `http://localhost:8000`  
+- Access Gradio (if launched): `http://localhost:7860`
 
 ---
 
 ## Troubleshooting
 
-- **Slow performance:** CPU inference is slower than GPU. Use smaller models.
-- **Missing HF_TOKEN:** Ensure your Hugging Face token is set as an environment variable.
-- **Port conflicts:** Change FastAPI (`8000`) or Gradio (`7860`) ports if already in use.
-- **CUDA/GPU errors:** Ignore if CPU-only. For GPU, ensure PyTorch + CUDA versions match.
+- `RuntimeError: No CPU models could be loaded!` → Ensure `HF_TOKEN` is set and model is available on Hugging Face.  
+- Slow responses → Use smaller models (`distilgpt2`).  
+- Gradio port conflicts → Change `server_port` in `app.py`.
 
 ---
 
-## Contributing
+## Feedback & Contribution
 
-- Fork the repository and submit pull requests for improvements.
-- Ensure no Hugging Face tokens or secrets are committed.
-- Follow PEP8 formatting and comment code clearly.
+This project is under active development. Feedback on errors, performance, or feature requests is welcome via:  
+- Email: neurosynlabs@proton.me, NeurosynLabs@google.com  
+- Website: https://neurodivergentexperiences.com
 
 ---
 
 ## License
 
-MIT License
+**Proprietary – All Rights Reserved**  
+
+```
+Copyright (c) 2025 NeurosynLabs. All rights reserved.
+
+This software and its associated files are proprietary.  
+No part of this software may be reproduced, modified, distributed, or sold without written permission from the copyright owner.
+```
+
+- Free CPU version may be used for local testing only.  
+- Paid version features and modules are restricted; access controlled via tokens and environment variables.
+
+---
+
+## Developer Info
+
+**Developer:** Jarred Gainer  
+**Emails:** neurosynlabs@proton.me, NeurosynLabs@google.com
