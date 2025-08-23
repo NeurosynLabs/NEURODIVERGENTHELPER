@@ -36,7 +36,6 @@ wheels/
 .pytest_cache/
 .mypy_cache/
 .dmypy.json
-.dmypy.json
 
 # IDE / editor settings
 .vscode/
