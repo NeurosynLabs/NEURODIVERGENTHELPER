@@ -5,11 +5,9 @@ starlette>=0.46.2
 pydantic>=2.11.0
 
 # --- AI/ML ---
-# Install torch with CUDA 12.1 (adjust if your GPU uses a different CUDA version)
-torch>=2.8.0+cu121 --index-url https://download.pytorch.org/whl/cu121
+torch>=2.8.0          # CPU-only
 transformers>=4.44.0
-accelerate>=0.23.0
-bitsandbytes>=0.41.0
+accelerate>=0.23.0    # works with CPU
 
 # --- Utilities ---
 requests>=2.31.0
