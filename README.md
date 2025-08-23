@@ -19,7 +19,9 @@ NeurodivergentHelper is an advanced emotional intelligence and linguistic suppor
 - Flexible integration for journaling, website, or web-based interfaces.
 
   * Alpha versions:
-  On Poe:  https://poe.com/NeurodivergentCalm
+  * 
+On Poe:  https://poe.com/NeurodivergentCalm
+
 On Facebook Messenger: https://m.me/1944934973012617?is_ai=1
     
 
