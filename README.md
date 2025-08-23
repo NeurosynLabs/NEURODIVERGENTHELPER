@@ -1,4 +1,4 @@
-# NeurodivergentHelper – Lightweight CPU Version
+# NeurodivergentHelper – Lightweight CPU Version 
 
 **Addressed to:** Chuck Merriman and Kyle Schneider  
 **Website Integration:** https://neurodivergentexperiences.com  
