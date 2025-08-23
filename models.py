@@ -4,20 +4,21 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from loguru import logger
 import os
 
-device = "cpu"  # CPU-only
+# CPU-only
+device = "cpu"
 
-# Ordered candidate models (small models only for CPU)
+# Candidate models (small CPU-friendly)
 MODEL_CANDIDATES = [
-    os.environ.get("MODEL_NAME"),  # user override via env var
-    "EleutherAI/gpt-neo-125M",    # small CPU-friendly model
-    "distilgpt2",                  # smallest GPT-2 variant
+    os.environ.get("MODEL_NAME"),  # optional user override
+    "EleutherAI/gpt-neo-125M",    # small GPT-Neo, fast on CPU
+    "distilgpt2",                  # very small GPT-2 variant
 ]
 
 # Globals
 tokenizer, model, active_model_name = None, None, None
 
 def try_load_model(name: str):
-    """Load a model from HF Hub on CPU"""
+    """Load a model from Hugging Face Hub on CPU"""
     logger.info(f"⚡ Loading {name} on CPU...")
     tok = AutoTokenizer.from_pretrained(name, use_auth_token=os.environ.get("HF_TOKEN"))
     mdl = AutoModelForCausalLM.from_pretrained(name)
@@ -25,7 +26,7 @@ def try_load_model(name: str):
     return tok, mdl
 
 def load_model():
-    """Try loading models in order"""
+    """Try loading models in order until one works"""
     global tokenizer, model, active_model_name
 
     if tokenizer and model:
