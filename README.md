@@ -22,7 +22,8 @@ NeurodivergentHelper is an advanced emotional intelligence and linguistic suppor
 - Supports neurotypes including autistic, ADHD, SPD, and trauma-affected individuals.
 - Sensitive emotional tone analysis, boundary negotiation, and interpersonal conflict guidance.
 - Adaptive session memory tracks the last 5 user interactions for context-aware responses.
-- Flexible integration for journaling, website, or web-based interfaces.
+- **Embeddable chat interface** via `/embed` endpoint for iframe integration.
+- **FastAPI endpoints** for custom frontend development.
 
 Alpha versions:
 
@@ -62,7 +63,7 @@ NeurodivergentHelper/
 ├─ requirements.txt
 ├─ Dockerfile
 ├─ .gitignore
-├─ NeurodivergentHelper.txt
+├─ NeurodivergentHelper.prompt.yml  # YAML system prompt
 ├─ README.md
 └─ overrides/  # optional custom app.py or Dockerfile
 ```
@@ -70,11 +71,46 @@ NeurodivergentHelper/
 ### Key Files
 
 - `app.py` – FastAPI and Gradio integration; entrypoint for API and optional web interface.  
-- `models.py` – Handles model loading and selection.  
-- `requirements.txt` – All dependencies for CPU execution.  
+- `models.py` – Handles model loading and selection with CPU optimizations.  
+- `requirements.txt` – All dependencies for CPU execution including PyYAML.  
 - `Dockerfile` – Container setup (CPU-compatible).  
-- `NeurodivergentHelper.txt` – System prompt text for the bot.  
+- `NeurodivergentHelper.prompt.yml` – YAML system prompt configuration for the bot.  
 - `.gitignore` – Excludes caches, virtual environments, and temporary files.  
+
+---
+
+## Website Integration (iframe Embedding)
+
+The enhanced version includes a built-in embeddable chat interface:
+
+**Method 1: Direct iframe embedding**
+```html
+<iframe 
+    src="https://your-domain.com/embed" 
+    width="600" 
+    height="500"
+    frameborder="0"
+    title="NeurodivergentHelper Chat">
+</iframe>
+```
+
+**Method 2: API integration for custom frontends**
+```javascript
+// POST to /query endpoint
+const response = await fetch('/query', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: userMessage })
+});
+const data = await response.json();
+console.log(data.response);
+```
+
+**Available endpoints:**
+- `/` - API status and model info
+- `/embed` - Embeddable chat interface 
+- `/query` - Chat API endpoint
+- `/docs` - FastAPI documentation
 
 ---
 
@@ -102,25 +138,28 @@ export MODEL_NAME="username/custom-model"
 ```bash
 # .env example
 HF_TOKEN=your_huggingface_token
-MODEL_NAME=EleutherAI/gpt-neo-125M
+MODEL_NAME=microsoft/DialoGPT-small
+PROMPT_URL=https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/NeurodivergentHelper.prompt.yml
 ```
 
 ---
 
 ## CPU Model Recommendations
 
-Due to GPU limitations, the lightweight version is CPU-only. The following models are included in `models.py`:
+Due to GPU limitations, the lightweight version is CPU-only. The following models are included in `models.py` (in order of preference):
 
-| Model Name                  | Notes                                              | Performance on CPU |
-|------------------------------|--------------------------------------------------|------------------|
-| `EleutherAI/gpt-neo-125M`   | Small GPT-Neo model, fast on CPU                 | Recommended      |
-| `distilgpt2`                 | Very small GPT-2 variant, minimal memory usage  | Slightly less capable |
-| `MODEL_NAME` (optional env)  | Custom Hugging Face model defined by user       | Depends on model size |
+| Model Name                    | Notes                                              | Performance on CPU |
+|-------------------------------|--------------------------------------------------|------------------|
+| `microsoft/DialoGPT-small`   | Optimized for conversation, handles context well  | **Recommended**  |
+| `EleutherAI/gpt-neo-125M`     | Small GPT-Neo model, fast on CPU                 | Good             |
+| `distilgpt2`                  | Very small GPT-2 variant, minimal memory usage   | Basic but fast   |
+| `microsoft/DialoGPT-medium`   | Larger model, better quality but slower          | Fallback         |
+| `MODEL_NAME` (optional env)   | Custom Hugging Face model defined by user        | Depends on model size |
 
 **How it works:**  
 - Tries models in order until one loads successfully.  
-- Runs entirely on CPU (`device = "cpu"`).  
-- Slower than GPU-based models for complex prompts.
+- Runs entirely on CPU with optimizations (`device = "cpu"`).  
+- Includes CPU performance optimizations and memory management.
 
 ---
 
@@ -146,14 +185,16 @@ Copy-Item "C:\Overrides\Dockerfile" -Destination ".\Dockerfile" -Force
 docker build -t neurodivergenthelper .
 ```
 
-4. Run Docker container:
+4. Run Docker container with environment variables:
 
 ```powershell
-docker run -it --rm -p 8000:8000 -p 7860:7860 neurodivergenthelper
+docker run -it --rm -p 8000:8000 -p 7860:7860 -e HF_TOKEN=your_token_here neurodivergenthelper
 ```
 
-- FastAPI: `http://localhost:8000`  
-- Gradio: `http://localhost:7860`
+**Access points:**
+- FastAPI + Embeddable Chat: `http://localhost:7860`  
+- API Documentation: `http://localhost:7860/docs`
+- Embed Interface: `http://localhost:7860/embed`
 
 ---
 
@@ -161,17 +202,19 @@ docker run -it --rm -p 8000:8000 -p 7860:7860 neurodivergenthelper
 
 ```powershell
 # Clone/update repo, build Docker image, and run container in one command
-if (Test-Path "C:\NeurodivergentHelper") { cd C:\NeurodivergentHelper; git reset --hard; git clean -fd; git pull origin main } else { git clone https://github.com/NeurosynLabs/NeurodivergentHelper.git C:\NeurodivergentHelper; cd C:\NeurodivergentHelper }; docker build -t neurodivergenthelper .; docker run -it --rm -p 8000:8000 -p 7860:7860 neurodivergenthelper
+if (Test-Path "C:\NeurodivergentHelper") { cd C:\NeurodivergentHelper; git reset --hard; git clean -fd; git pull origin main } else { git clone https://github.com/NeurosynLabs/NeurodivergentHelper.git C:\NeurodivergentHelper; cd C:\NeurodivergentHelper }; docker build -t neurodivergenthelper .; docker run -it --rm -p 7860:7860 -e HF_TOKEN=your_token_here neurodivergenthelper
 ```
 
-> Open `http://localhost:8000` for API and `http://localhost:7860` for the web UI.  
+> Open `http://localhost:7860/embed` for the embeddable chat interface.  
 
 ---
 
 ## Hosting Alternatives
 
 - **Docker Desktop (CPU)** – Recommended for Windows; works without special configuration.  
-- **Replit GPU** – Development/testing; subscription required.  
+- **Hugging Face Spaces** – Free hosting with Gradio interface (slower performance).
+- **Replit GPU** – Development/testing; subscription required for consistent uptime.  
+- **Railway/Render** – Cloud hosting alternatives for CPU version.
 - **Cloudflare Tunnel + DuckDNS** – Optional for exposing local CPU container via subdomain.  
 
 > GPU passthrough on Windows WSL2, VMware, or native Windows is **not supported**. Linux + CUDA required for GPU execution.
@@ -181,9 +224,10 @@ if (Test-Path "C:\NeurodivergentHelper") { cd C:\NeurodivergentHelper; git reset
 ## Known Limitations
 
 - CPU-only version is slower than GPU models.  
-- Session memory limited to last 5 prompts.  
+- Session memory limited to last 5-10 exchanges per user.  
 - Some Hugging Face models may require more RAM.  
-- Free CPU version intended for local testing only; GPU hosting requires Replit subscription.
+- Free CPU version intended for local testing only; production hosting requires optimization.
+- YAML parsing requires `pyyaml` dependency.
 
 ---
 
@@ -197,22 +241,52 @@ pip install -r requirements.txt
 export HF_TOKEN="your_token_here"
 
 # Optional: specify custom model
-export MODEL_NAME="username/custom-model"
+export MODEL_NAME="microsoft/DialoGPT-small"
 
 # Run locally with CPU
 python app.py
 ```
 
-- Access FastAPI: `http://localhost:8000`  
-- Access Gradio (if launched): `http://localhost:7860`
+**Access points:**
+- Main Interface: `http://localhost:7860`  
+- Embeddable Chat: `http://localhost:7860/embed`
+- API Docs: `http://localhost:7860/docs`
 
 ---
 
 ## Troubleshooting
 
 - `RuntimeError: No CPU models could be loaded!` → Ensure `HF_TOKEN` is set and model is available on Hugging Face.  
-- Slow responses → Use smaller models (`distilgpt2`).  
+- `ModuleNotFoundError: No module named 'yaml'` → Install pyyaml: `pip install pyyaml`
+- Slow responses → Use smaller models (`distilgpt2`) or increase CPU threads.  
+- CORS errors in iframe → Check if CORS middleware is enabled in `app.py`.
 - Gradio port conflicts → Change `server_port` in `app.py`.  
+
+**Performance optimization:**
+```bash
+# Set CPU thread optimization
+export OMP_NUM_THREADS=4
+export MKL_NUM_THREADS=4  
+export OPENBLAS_NUM_THREADS=4
+```
+
+---
+
+## Development Notes
+
+**Recent enhancements:**
+- Added YAML prompt loading from GitHub
+- Enhanced CPU performance optimizations  
+- Built-in embeddable chat interface (`/embed`)
+- Session management with memory cleanup
+- CORS support for iframe embedding
+- Better error handling and fallbacks
+
+**Planned features:**
+- Redis session storage for production
+- Model caching and warm-up
+- Rate limiting and authentication
+- Advanced prompt templating
 
 ---
 
