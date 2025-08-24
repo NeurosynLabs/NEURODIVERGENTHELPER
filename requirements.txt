@@ -1,35 +1,6 @@
-# --- Core Web Server ---
-fastapi>=0.115.2
-uvicorn[standard]>=0.23.0  # includes performance extras
-starlette>=0.46.2
-pydantic>=2.11.0
-
-# --- AI/ML ---
-torch>=2.0.0          # CPU-only PyTorch with version spec
-transformers>=4.44.0
-accelerate>=0.23.0    # works with CPU
-tokenizers>=0.15.0    # explicit tokenizers for better performance
-
-# --- YAML Support ---
-pyyaml>=6.0           # for loading your prompt.yml file
-
-# --- Utilities ---
-requests>=2.31.0
-python-dotenv>=1.0.0
-loguru>=0.7.0
-nest-asyncio>=1.5.8
-
-# --- Web Interface ---
-gradio>=4.0.0         # updated to newer version with better embedding support
-
-# --- Performance & Memory ---
-psutil>=5.9.0         # for system monitoring
-numpy>=1.24.0         # explicit numpy for better CPU performance
-
-# --- Optional CPU Optimizations ---
-# intel-extension-for-pytorch  # uncomment if you have Intel CPU
-# openvino-dev                 # uncomment for Intel OpenVINO optimizations
-
-# --- Development/Debugging (optional) ---
-# rich>=13.0.0        # better console output
-# httpx>=0.25.0       # async HTTP client for testing
+fastapi==0.115.2
+uvicorn[standard]==0.24.0
+transformers==4.46.0
+torch==2.2.0
+pyyaml==7.0
+gradio==3.50.1
