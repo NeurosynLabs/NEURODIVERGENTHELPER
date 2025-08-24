@@ -1,14 +1,14 @@
-# NeurodivergentHelper – Lightweight CPU Version 
+# NeurodivergentHelper – Lightweight CPU Version
 
 **Addressed to:** Chuck Merriman and Kyle Schneider  
 **Website Integration:** https://neurodivergentexperiences.com  
-**Purpose:** Intended to be embedded in the website via an iframe. This is the **free version** of the prompt. A paid version with additional modules, settings, and features is under development. This system could also be extended to Discord (both free and paid versions).
+**Purpose:** Intended to be embedded in the website via an iframe. This is the **free CPU version** of the prompt. A paid version with additional modules, settings, and features is under development. This system could also be extended to Discord (both free and paid versions).
 
-Replit: GPU version works for development/testing; $200ish/year plan covers 1-year hosting: https://replit.com/pricing
+Replit: GPU version works for development/testing; $200ish/year plan covers 1-year hosting: https://replit.com/pricing  
 
-Alternative: OpenAI. 
+Alternative: OpenAI.
 
-CPU version released to to self-host due to limitations described in document. GPU version could be programmed if system where a more powerful GPU ran & the OS was Linux.
+CPU version released to self-host due to GPU limitations on Windows. GPU version requires Linux and a CUDA-compatible GPU.
 
 ---
 
@@ -25,17 +25,15 @@ NeurodivergentHelper is an advanced emotional intelligence and linguistic suppor
 - Flexible integration for journaling, website, or web-based interfaces.
 
 Alpha versions:
-  
-On Poe:  https://poe.com/NeurodivergentCalm
 
-On Facebook Messenger: https://m.me/1944934973012617?is_ai=1
-    
+- On Poe: https://poe.com/NeurodivergentCalm  
+- On Facebook Messenger: https://m.me/1944934973012617?is_ai=1
 
 **Lightweight CPU Version Notes:**
 
 - Runs entirely on CPU (`device = "cpu"`) due to GPU limitations on Windows.
 - Slower responses expected compared to GPU-based models.
-- Developer has yet to test and troubleshoot all errors; project is open for feedback.
+- Developer has yet to test all errors; project is open for feedback.
 
 ---
 
@@ -43,15 +41,15 @@ On Facebook Messenger: https://m.me/1944934973012617?is_ai=1
 
 **CPU Version (Lightweight)**
 
-- OS: Windows 10/11, macOS, or Linux
-- RAM: 8 GB minimum, 16 GB recommended
-- Disk: 2 GB for dependencies and model cache
+- OS: Windows 10/11, macOS, or Linux  
+- RAM: 8 GB minimum, 16 GB recommended  
+- Disk: 2 GB for dependencies and model cache  
 
 **GPU Version (Future / Replit)**
 
-- GPU: NVIDIA CUDA-compatible GPU (12.1)
-- VRAM: Minimum 6–8 GB
-- OS: Linux preferred for local GPU hosting
+- GPU: NVIDIA CUDA-compatible GPU (12.1)  
+- VRAM: Minimum 6–8 GB  
+- OS: Linux preferred for local GPU hosting  
 
 ---
 
@@ -65,17 +63,18 @@ NeurodivergentHelper/
 ├─ Dockerfile
 ├─ .gitignore
 ├─ NeurodivergentHelper.txt
-└─ README.md
+├─ README.md
+└─ overrides/  # optional custom app.py or Dockerfile
 ```
 
 ### Key Files
 
-- `app.py` – FastAPI and Gradio integration; entrypoint for API and optional web interface.
-- `models.py` – Handles model loading and selection.
-- `requirements.txt` – All dependencies for CPU execution.
-- `Dockerfile` – Container setup (CPU-compatible).
-- `NeurodivergentHelper.txt` – System prompt text for the bot.
-- `.gitignore` – Excludes caches, virtual environments, and temporary files.
+- `app.py` – FastAPI and Gradio integration; entrypoint for API and optional web interface.  
+- `models.py` – Handles model loading and selection.  
+- `requirements.txt` – All dependencies for CPU execution.  
+- `Dockerfile` – Container setup (CPU-compatible).  
+- `NeurodivergentHelper.txt` – System prompt text for the bot.  
+- `.gitignore` – Excludes caches, virtual environments, and temporary files.  
 
 ---
 
@@ -84,16 +83,19 @@ NeurodivergentHelper/
 1. **Hugging Face Token**  
    - Do **not** store HF_TOKEN in `app.py`.  
    - Create a token on Hugging Face and export it as an environment variable:  
-     ```bash
-     export HF_TOKEN="your_token_here"
-     ```
-   - `app.py` references it automatically for model downloads.
+
+```bash
+export HF_TOKEN="your_token_here"
+```
+
+- `app.py` references it automatically for model downloads.
 
 2. **Optional Custom Model**  
-   - Set `MODEL_NAME` environment variable if you want a different Hugging Face model:  
-     ```bash
-     export MODEL_NAME="username/custom-model"
-     ```
+- Set `MODEL_NAME` environment variable if you want a different Hugging Face model:
+
+```bash
+export MODEL_NAME="username/custom-model"
+```
 
 3. **Optional .env File**
 
@@ -122,20 +124,57 @@ Due to GPU limitations, the lightweight version is CPU-only. The following model
 
 ---
 
-## Hosting Alternatives and Past Attempts
+## Running with Docker Desktop (Recommended)
 
-- **Windows WSL2:** GPU passthrough not possible.  
-- **VMware:** GPU passthrough unsupported on Windows host; Linux base OS required.  
-- **Google Colab:** Works but static link required for iframe embedding; ngrok failed for persistent static link.  
-- **Render / other cloud services:** Tested but unsuitable for GPU or static link needs.  
-- **Replit:** GPU version works for development/testing; $200/year plan covers 1-year hosting.  
-- **Cloudflare Tunnel + DuckDNS:** Recommended for self-hosted CPU version to provide sub-domain access.  
+1. Clone or update the repository:
 
-**Website Integration:**  
-- Embedded via iframe at https://neurodivergentexperiences.com.  
-- Paid version under development, includes feature-rich modules and token-based access.  
-- Firebase + Stripe can handle user logins, payment splits, and webhook-based feature unlocks.  
-- Discord bot integration possible (free and paid versions).
+```powershell
+git clone https://github.com/NeurosynLabs/NeurodivergentHelper.git C:\NeurodivergentHelper
+cd C:\NeurodivergentHelper
+```
+
+2. (Optional) Override `app.py` or `Dockerfile` by placing custom files in `C:\NeurodivergentHelper\overrides`:
+
+```powershell
+Copy-Item "C:\Overrides\app.py" -Destination ".\app.py" -Force
+Copy-Item "C:\Overrides\Dockerfile" -Destination ".\Dockerfile" -Force
+```
+
+3. Build Docker image:
+
+```powershell
+docker build -t neurodivergenthelper .
+```
+
+4. Run Docker container:
+
+```powershell
+docker run -it --rm -p 8000:8000 -p 7860:7860 neurodivergenthelper
+```
+
+- FastAPI: `http://localhost:8000`  
+- Gradio: `http://localhost:7860`
+
+---
+
+### Quick Start – One-Line Docker Desktop Run (Windows PowerShell)
+
+```powershell
+# Clone/update repo, build Docker image, and run container in one command
+if (Test-Path "C:\NeurodivergentHelper") { cd C:\NeurodivergentHelper; git reset --hard; git clean -fd; git pull origin main } else { git clone https://github.com/NeurosynLabs/NeurodivergentHelper.git C:\NeurodivergentHelper; cd C:\NeurodivergentHelper }; docker build -t neurodivergenthelper .; docker run -it --rm -p 8000:8000 -p 7860:7860 neurodivergenthelper
+```
+
+> Open `http://localhost:8000` for API and `http://localhost:7860` for the web UI.  
+
+---
+
+## Hosting Alternatives
+
+- **Docker Desktop (CPU)** – Recommended for Windows; works without special configuration.  
+- **Replit GPU** – Development/testing; subscription required.  
+- **Cloudflare Tunnel + DuckDNS** – Optional for exposing local CPU container via subdomain.  
+
+> GPU passthrough on Windows WSL2, VMware, or native Windows is **not supported**. Linux + CUDA required for GPU execution.
 
 ---
 
@@ -144,7 +183,6 @@ Due to GPU limitations, the lightweight version is CPU-only. The following model
 - CPU-only version is slower than GPU models.  
 - Session memory limited to last 5 prompts.  
 - Some Hugging Face models may require more RAM.  
-- Developer has yet to test all edge cases; feedback welcome.  
 - Free CPU version intended for local testing only; GPU hosting requires Replit subscription.
 
 ---
@@ -174,7 +212,7 @@ python app.py
 
 - `RuntimeError: No CPU models could be loaded!` → Ensure `HF_TOKEN` is set and model is available on Hugging Face.  
 - Slow responses → Use smaller models (`distilgpt2`).  
-- Gradio port conflicts → Change `server_port` in `app.py`.
+- Gradio port conflicts → Change `server_port` in `app.py`.  
 
 ---
 
@@ -182,7 +220,7 @@ python app.py
 
 This project is under active development. Feedback on errors, performance, or feature requests is welcome via:  
 - Email: neurosynlabs@proton.me, NeurosynLabs@google.com  
-- Website: https://neurodivergentexperiences.com
+- Website: https://neurodivergentexperiences.com  
 
 ---
 
