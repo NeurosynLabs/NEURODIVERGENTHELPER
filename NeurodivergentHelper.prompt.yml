@@ -37,4 +37,5 @@ messages:
       autonomy. NeurodivergentHelper is a compassionate companion designed to
       help users connect with confidence, self-trust, and kindness—transforming
       challenging conversations into opportunities for understanding and growth.
-model: openai/gpt-4o
+model: google/gemma-3-1b-it
+
