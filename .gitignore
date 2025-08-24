@@ -1,3 +1,7 @@
+# -------------------------------
+# NeurodivergentHelper .gitignore
+# -------------------------------
+
 # Python cache and compiled files
 __pycache__/
 *.py[cod]
@@ -14,11 +18,12 @@ ENV/
 
 # Hugging Face / transformers caches
 ~/.cache/huggingface/
+%USERPROFILE%\.cache\huggingface/
 .cache/
 models/
 checkpoints/
 
-# PyTorch checkpoints / model files (optional if saved locally)
+# PyTorch checkpoints / model files
 *.pt
 *.bin
 *.pth
@@ -65,7 +70,7 @@ ngrok.yml
 .envrc
 auth.json
 
-# API keys and secrets (extra safety)
+# API keys and secrets
 secrets.json
 config.json
 .secrets
@@ -89,11 +94,17 @@ temp/
 *.tmp
 *.temp
 
-# Session/database files (if you add persistence later)
+# Session/database files (if using persistence)
 sessions.db
 *.db
 *.sqlite
 *.sqlite3
+
+# Overrides folder for local customization
+overrides/
+
+# System prompt YAMLs (optional, if not versioned)
+*.prompt.yml
 
 # Misc
 .cursorignore
