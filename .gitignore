@@ -9,13 +9,21 @@ __pycache__/
 env/
 venv/
 ENV/
+.env.local
+.env.production
 
 # Hugging Face / transformers caches
 ~/.cache/huggingface/
+.cache/
+models/
+checkpoints/
 
 # PyTorch checkpoints / model files (optional if saved locally)
 *.pt
 *.bin
+*.pth
+*.ckpt
+*.safetensors
 
 # Distribution / packaging
 build/
@@ -26,6 +34,8 @@ wheels/
 
 # Logs
 *.log
+logs/
+gradio_logs/
 
 # Jupyter Notebooks
 .ipynb_checkpoints
@@ -36,16 +46,57 @@ wheels/
 .pytest_cache/
 .mypy_cache/
 .dmypy.json
+htmlcov/
 
 # IDE / editor settings
 .vscode/
 .idea/
 .spyderproject
+*.swp
+*.swo
+*~
+
+# Docker
+.dockerignore
+docker-compose.override.yml
 
 # ngrok / local config files
 ngrok.yml
 .envrc
+auth.json
+
+# API keys and secrets (extra safety)
+secrets.json
+config.json
+.secrets
+api_keys.txt
+
+# Gradio temporary files
+gradio_cached_examples/
+flagged/
+
+# FastAPI/Uvicorn
+.uvicorn.pid
+
+# OS-specific
+.DS_Store
+Thumbs.db
+.directory
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Session/database files (if you add persistence later)
+sessions.db
+*.db
+*.sqlite
+*.sqlite3
 
 # Misc
 .cursorignore
 .cursorindexingignore
+node_modules/
+package-lock.json
