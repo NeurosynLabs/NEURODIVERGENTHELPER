@@ -1,4 +1,4 @@
-```markdown
+
 # NeurodivergentHelper – Proprietary License
 
 **Copyright (c) 2025 NeurosynLabs. All rights reserved.**
@@ -78,4 +78,3 @@ For questions regarding licensing, commercial use, or the paid version, contact:
 ---
 
 **By using NeurodivergentHelper, you agree to comply with all terms of this license.**
-```
