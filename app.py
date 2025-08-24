@@ -21,7 +21,6 @@ with requests.get(PROMPT_URL, headers=headers) as response:
 # --- Session memory ---
 SESSION_MEMORY = []
 
-
 @app.get("/")
 def root():
     """API root: returns live message and active model"""
@@ -29,7 +28,6 @@ def root():
         "message": "NeurodivergentHelper API is live!",
         "model": get_active_model_name()
     }
-
 
 @app.post("/query")
 async def query(request: Request):
@@ -42,10 +40,9 @@ async def query(request: Request):
     tokenizer, model, active_model = load_model()
 
     SESSION_MEMORY.append(f"User: {user_input}")
-    context_text = "\n".join(SESSION_MEMORY[-5:])  # last 5 entries for context
+    context_text = "\n".join(SESSION_MEMORY[-5:])
     full_prompt = f"{DEFAULT_PROMPT}\n\n{context_text}\nNeurodivergentHelper:"
 
-    # CPU-friendly tokenizer call with truncation
     inputs = tokenizer(full_prompt, return_tensors="pt", truncation=True).to(model.device)
     outputs = model.generate(**inputs, max_new_tokens=150)
     response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
@@ -57,36 +54,34 @@ async def query(request: Request):
         "model_used": active_model
     }
 
-
-# --- Gradio interface ---
-def gradio_chat(user_input, history=[]):
-    """Gradio chat function"""
+# --- Gradio chat function ---
+def gradio_chat(user_input, history):
+    """Returns response and updated history"""
     SESSION_MEMORY.append(f"User: {user_input}")
     tokenizer, model, active_model = load_model()
 
     context_text = "\n".join(SESSION_MEMORY[-5:])
     full_prompt = f"{DEFAULT_PROMPT}\n\n{context_text}\nNeurodivergentHelper:"
 
-    # CPU-friendly tokenizer call with truncation
     inputs = tokenizer(full_prompt, return_tensors="pt", truncation=True).to(model.device)
     outputs = model.generate(**inputs, max_new_tokens=150)
     response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
     SESSION_MEMORY.append(f"NeurodivergentHelper: {response_text}")
     history = history + [(user_input, response_text)]
-    return response_text, history
+    return history, history
 
-
-# --- Optional: Launch Gradio UI if run directly ---
+# --- Launch Gradio UI if run directly ---
 if __name__ == "__main__":
-    import uvicorn
-    interface = gr.Interface(
-        fn=gradio_chat,
-        inputs="text",
-        outputs=["text", "state"],
-        title="NeurodivergentHelper",
-        description="Ask questions and get AI responses (CPU-only)"
-    )
-    interface.launch(server_name="0.0.0.0", server_port=7860)
-    # Or if you prefer FastAPI:
-    # uvicorn.run(app, host="0.0.0.0", port=8000)
+    with gr.Blocks() as demo:
+        state = gr.State([])  # conversation history
+        chatbot = gr.Chatbot()
+        user_input = gr.Textbox(label="Your message", placeholder="Type your message here...")
+
+        user_input.submit(
+            gradio_chat,
+            inputs=[user_input, state],
+            outputs=[chatbot, state]
+        )
+
+    demo.launch(server_name="0.0.0.0", server_port=7860)
