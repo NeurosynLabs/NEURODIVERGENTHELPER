@@ -1,5 +1,5 @@
 # -------------------------------
-# NeurodivergentHelper CPU Dockerfile
+# NeurodivergentHelper CPU Dockerfile (Updated)
 # -------------------------------
 
 # Base image with Python 3.12
@@ -30,8 +30,8 @@ COPY . /app
 # --- Install Python dependencies ---
 RUN pip install --no-cache-dir -r requirements.txt
 
-# --- Pre-cache models (optional - uncomment to speed up first run) ---
-# RUN python3 -c "from transformers import AutoTokenizer, AutoModelForCausalLM; AutoTokenizer.from_pretrained('distilgpt2'); AutoModelForCausalLM.from_pretrained('distilgpt2')"
+# --- Pre-cache models (optional) ---
+# RUN python3 -c "from transformers import AutoTokenizer, AutoModelForCausalLM; AutoTokenizer.from_pretrained('NousResearch/Nous-Hermes-CPU'); AutoModelForCausalLM.from_pretrained('NousResearch/Nous-Hermes-CPU')"
 
 # --- Expose ports ---
 # FastAPI default: 8000
@@ -40,7 +40,6 @@ EXPOSE 8000
 EXPOSE 7860
 
 # --- Environment variables ---
-# HF_TOKEN should be provided at runtime (docker run -e HF_TOKEN=...)
 ENV HF_TOKEN=""
 ENV PROMPT_URL="https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/NeurodivergentHelper.prompt.yml"
 ENV MODEL_NAME=""
@@ -58,11 +57,5 @@ RUN adduser --disabled-password --gecos '' appuser && \
 USER appuser
 
 # --- Default entrypoint ---
-# Option 1: run FastAPI + Gradio (recommended for embedding)
-# CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
-
-# Option 2: run Gradio with FastAPI endpoints (current setup)
+# Option: run FastAPI + Gradio integrated
 CMD ["python3", "app.py"]
-
-# --- Alternative entrypoint for production ---
-# CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "1"]
