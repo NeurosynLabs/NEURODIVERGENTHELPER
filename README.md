@@ -1,4 +1,3 @@
-```markdown
 # NeurodivergentHelper – Lightweight CPU Version
 
 **Addressed to:** Chuck Merriman and Kyle Schneider  
@@ -301,4 +300,3 @@ No part may be reproduced, modified, distributed, or sold without written permis
 
 **Developer:** Jarred Gainer  
 **Emails:** neurosynlabs@proton.me, NeurosynLabs@google.com
-```
