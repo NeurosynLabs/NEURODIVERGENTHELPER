@@ -1,13 +1,12 @@
 # -------------------------------
-# NeurodivergentHelper CPU Dockerfile (Dynamic Model Download)
+# NeurodivergentHelper CPU Dockerfile (Updated)
 # -------------------------------
 
+# Base image with Python 3.12
 FROM python:3.12-slim
 
-# Non-interactive mode
+# Set non-interactive mode for apt
 ENV DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
-ENV PIP_NO_CACHE_DIR=1
 
 # --- Install system dependencies ---
 RUN apt-get update && \
@@ -29,29 +28,35 @@ WORKDIR /app
 COPY . /app
 
 # --- Install Python dependencies ---
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
-# --- Expose FastAPI & Gradio ports ---
+# --- Pre-cache models (optional) ---
+# RUN python3 -c "from transformers import AutoTokenizer, AutoModelForCausalLM; AutoTokenizer.from_pretrained('NousResearch/Nous-Hermes-CPU'); AutoModelForCausalLM.from_pretrained('NousResearch/Nous-Hermes-CPU')"
+
+# --- Expose ports ---
 EXPOSE 8000
 EXPOSE 7860
 
 # --- Environment variables ---
 ENV HF_TOKEN=""
 ENV PROMPT_URL="https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/NeurodivergentHelper.prompt.yml"
-ENV MODEL_NAME=""  # Optional override for models.py
+
+# Optional override for models.py
+ENV MODEL_NAME=""
+
 ENV OMP_NUM_THREADS=4
 ENV MKL_NUM_THREADS=4
 ENV OPENBLAS_NUM_THREADS=4
-ENV TRANSFORMERS_NO_ADVISORY_WARNINGS=1
 
-# --- Healthcheck ---
+# --- Health check ---
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:7860/ || exit 1
 
-# --- Non-root user ---
+# --- Create non-root user for security ---
 RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# --- Entrypoint ---
+# --- Default entrypoint ---
+# Option: run FastAPI + Gradio integrated
 CMD ["python3", "app.py"]
