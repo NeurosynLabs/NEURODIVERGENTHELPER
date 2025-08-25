@@ -2,7 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 import os, json, asyncio, gc
-from models import load_model, get_active_model_name, DEFAULT_MODEL_NAME
+import gradio as gr
+from models import load_model, get_active_model_name, list_available_models, DEFAULT_MODEL_NAME
 
 # --- FastAPI setup ---
 app = FastAPI(title="NeurodivergentHelper")
@@ -52,7 +53,6 @@ async def query(request: Request):
     data = await request.json()
     user_input = data.get("prompt", "").strip()
     settings = data.get("settings", {})
-    model_name = settings.get("model_name", DEFAULT_MODEL_NAME)
 
     if not user_input:
         return JSONResponse({"error": "No prompt provided."})
@@ -60,7 +60,10 @@ async def query(request: Request):
     session_id = get_session_id(request)
     add_to_session(session_id, "user", user_input)
 
-    tokenizer, model, active_model = load_model(model_name)
+    # Load model from user selection
+    selected_model = settings.get("model", DEFAULT_MODEL_NAME)
+    tokenizer, model, active_model = load_model(selected_model)
+    
     context = get_session_context(session_id)
     nickname = settings.get("nickname", "User")
     tone = settings.get("tone", "patient")
@@ -94,9 +97,12 @@ async def query(request: Request):
     except Exception as e:
         return JSONResponse({"error": f"Failed to generate response: {e}"})
 
-# --- Embed Interface with Model Selector ---
+# --- Embed Interface ---
 @app.get("/embed", response_class=HTMLResponse)
 def embed_interface():
+    available_models = list_available_models()
+    model_options = "".join([f'<option value="{m}">{m}</option>' for m in available_models])
+
     html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -120,13 +126,15 @@ body {{ font-family: Arial, sans-serif; margin:0; padding:20px; background:#f5f5
 .accordion {{ background:#007bff; color:white; cursor:pointer; padding:10px; width:100%; text-align:left; border:none; outline:none; border-radius:8px; margin-bottom:10px; }}
 .panel {{ padding:0 10px; display:none; background-color:#f1f1f1; overflow:hidden; border-radius:8px; margin-bottom:10px; }}
 .panel input, .panel select {{ width:100%; padding:8px; margin:5px 0; border-radius:8px; border:1px solid #ccc; }}
+.export-btn {{ padding:8px 12px; background:#28a745; color:white; border:none; border-radius:8px; cursor:pointer; margin-top:5px; }}
 </style>
 </head>
 <body>
 <div class="chat-container">
 <h2>NeurodivergentHelper</h2>
 <div class="messages" id="messages"></div>
-<button class="accordion">User Settings & Model</button>
+
+<button class="accordion">User Settings</button>
 <div class="panel">
 <input type="text" id="nickname" placeholder="Nickname">
 <select id="tone">
@@ -136,17 +144,17 @@ body {{ font-family: Arial, sans-serif; margin:0; padding:20px; background:#f5f5
 <option value="detailed">Detailed</option>
 </select>
 <input type="text" id="topics" placeholder="Topics of interest">
-<select id="model_name">
-<option value="{DEFAULT_MODEL_NAME}">{DEFAULT_MODEL_NAME}</option>
-<!-- Add other models here if desired -->
-</select>
+<select id="model">{model_options}</select>
+<button class="export-btn" onclick="exportHistory()">Export Session</button>
 </div>
+
 <div class="input-area">
 <input type="text" id="user-input" placeholder="Type your message here..." />
 <button id="send-btn">Send</button>
 <button id="clear-btn">Clear</button>
 </div>
 </div>
+
 <script>
 const messages = document.getElementById('messages');
 const userInput = document.getElementById('user-input');
@@ -157,12 +165,15 @@ const panel = document.querySelector(".panel");
 
 accordion.addEventListener("click", () => {{ panel.style.display = panel.style.display === "block" ? "none" : "block"; }});
 
+let sessionHistory = [];
+
 function addMessage(content, isUser=false) {{
     const div = document.createElement('div');
     div.className = 'message ' + (isUser ? 'user-message' : 'bot-message');
     div.textContent = content;
     messages.appendChild(div);
     messages.scrollTop = messages.scrollHeight;
+    sessionHistory.push({{role: isUser ? "user" : "assistant", content}});
 }}
 
 async function sendMessage() {{
@@ -176,7 +187,7 @@ async function sendMessage() {{
         nickname: document.getElementById('nickname').value,
         tone: document.getElementById('tone').value,
         topics: document.getElementById('topics').value,
-        model_name: document.getElementById('model_name').value
+        model: document.getElementById('model').value
     }};
     try {{
         const response = await fetch('/query', {{ method: 'POST', headers: {{ 'Content-Type': 'application/json' }}, body: JSON.stringify({{ prompt: message, settings }}) }});
@@ -190,7 +201,18 @@ async function sendMessage() {{
 
 sendBtn.addEventListener('click', sendMessage);
 userInput.addEventListener('keypress', e => {{ if(e.key==='Enter') sendMessage(); }});
-clearBtn.addEventListener('click', () => {{ messages.innerHTML=''; }});
+clearBtn.addEventListener('click', () => {{ messages.innerHTML=''; sessionHistory = []; }});
+
+function exportHistory() {{
+    const blob = new Blob([JSON.stringify(sessionHistory, null, 2)], {{type : 'application/json'}});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'session_history.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}}
+
 addMessage("Hello! I'm NeurodivergentHelper. How can I support you today?");
 userInput.focus();
 </script>
