@@ -1,12 +1,13 @@
 # -------------------------------
-# NeurodivergentHelper CPU Dockerfile (Updated)
+# NeurodivergentHelper CPU Dockerfile (Dynamic Model Download)
 # -------------------------------
 
-# Base image with Python 3.12
 FROM python:3.12-slim
 
-# Set non-interactive mode for apt
+# Non-interactive mode
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+ENV PIP_NO_CACHE_DIR=1
 
 # --- Install system dependencies ---
 RUN apt-get update && \
@@ -16,7 +17,7 @@ RUN apt-get update && \
         wget \
         build-essential \
         python3-dev \
-        && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
 RUN python3 -m pip install --upgrade pip
@@ -28,34 +29,29 @@ WORKDIR /app
 COPY . /app
 
 # --- Install Python dependencies ---
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-# --- Pre-cache models (optional) ---
-# RUN python3 -c "from transformers import AutoTokenizer, AutoModelForCausalLM; AutoTokenizer.from_pretrained('NousResearch/Nous-Hermes-CPU'); AutoModelForCausalLM.from_pretrained('NousResearch/Nous-Hermes-CPU')"
-
-# --- Expose ports ---
-# FastAPI default: 8000
-# Gradio default: 7860
+# --- Expose FastAPI & Gradio ports ---
 EXPOSE 8000
 EXPOSE 7860
 
 # --- Environment variables ---
 ENV HF_TOKEN=""
 ENV PROMPT_URL="https://raw.githubusercontent.com/NeurosynLabs/NeurodivergentHelper/main/NeurodivergentHelper.prompt.yml"
-ENV MODEL_NAME=""
+ENV MODEL_NAME=""  # Optional override for models.py
 ENV OMP_NUM_THREADS=4
 ENV MKL_NUM_THREADS=4
 ENV OPENBLAS_NUM_THREADS=4
+ENV TRANSFORMERS_NO_ADVISORY_WARNINGS=1
 
-# --- Health check ---
+# --- Healthcheck ---
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:7860/ || exit 1
 
-# --- Create non-root user for security ---
+# --- Non-root user ---
 RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# --- Default entrypoint ---
-# Option: run FastAPI + Gradio integrated
+# --- Entrypoint ---
 CMD ["python3", "app.py"]
