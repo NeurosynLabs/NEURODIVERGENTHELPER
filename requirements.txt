@@ -1,6 +1,6 @@
-fastapi==0.115.2
-uvicorn[standard]==0.24.0
-transformers==4.46.0
-torch==2.2.0
-pyyaml==7.0
-gradio==3.50.1
+fastapi
+uvicorn[standard]
+transformers
+torch
+pyyaml
+gradio
