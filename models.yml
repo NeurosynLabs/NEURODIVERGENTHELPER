@@ -1,0 +1,8 @@
+# Available Hugging Face models for NeurodivergentHelper
+models:
+  - name: "NousResearch/Nous-Hermes-CPU"
+    display_name: "Nous-Hermes CPU"
+  - name: "microsoft/DialoGPT-small"
+    display_name: "DialoGPT Small"
+  - name: "EleutherAI/gpt-neo-125M"
+    display_name: "GPT-Neo 125M"
