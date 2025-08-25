@@ -1,33 +1,20 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
-import os, json, asyncio
+import os, json, asyncio, gc
 import gradio as gr
-import yaml
-from models import load_model, get_tokenizer, get_model, get_active_model_name
+from models import load_model, get_active_model_name, SYSTEM_PROMPT
 
 # --- FastAPI setup ---
 app = FastAPI(title="NeurodivergentHelper")
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict in production
+    allow_origins=["*"],  # Adjust for production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# --- Load system prompt ---
-PROMPT_FILE = "NeurodivergentHelper.prompt.yml"
-SYSTEM_PROMPT = "You are NeurodivergentHelper, a compassionate AI companion."
-if os.path.exists(PROMPT_FILE):
-    with open(PROMPT_FILE, "r", encoding="utf-8") as f:
-        yaml_data = yaml.safe_load(f)
-        if 'messages' in yaml_data:
-            for msg in yaml_data['messages']:
-                if msg.get('role') == "system":
-                    SYSTEM_PROMPT = msg.get('content', '').strip()
 
 # --- Session storage ---
 sessions = {}
@@ -54,13 +41,11 @@ def get_session_context(session_id: str) -> str:
 # --- API Root ---
 @app.get("/")
 def root():
-    return {
-        "message": "NeurodivergentHelper API is live!",
-        "model": get_active_model_name(),
-        "version": "1.0.0"
-    }
+    return {"message": "NeurodivergentHelper API is live!",
+            "model": get_active_model_name(),
+            "version": "1.0.0"}
 
-# --- Query endpoint ---
+# --- Query Endpoint ---
 @app.post("/query")
 async def query(request: Request):
     data = await request.json()
@@ -75,12 +60,11 @@ async def query(request: Request):
 
     tokenizer, model, active_model = load_model()
     context = get_session_context(session_id)
+    nickname = settings.get("nickname", "User")
+    tone = settings.get("tone", "patient")
+    topics = settings.get("topics", "")
 
-    full_prompt = f"""{SYSTEM_PROMPT}
-
-{context}
-User: {user_input}
-NeurodivergentHelper:"""
+    full_prompt = f"{SYSTEM_PROMPT}\n\nUser: {nickname}\nTone: {tone}\nTopics: {topics}\n{context}\nUser: {user_input}\nNeurodivergentHelper:"
 
     try:
         inputs = tokenizer(full_prompt, return_tensors="pt", truncation=True, max_length=2048).to(model.device)
@@ -94,13 +78,12 @@ NeurodivergentHelper:"""
         response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
         if "NeurodivergentHelper:" in response_text:
             response_text = response_text.split("NeurodivergentHelper:")[-1].strip()
-
         add_to_session(session_id, "assistant", response_text)
         return {"response": response_text, "model_used": active_model, "session_id": session_id}
     except Exception as e:
-        return {"error": f"Failed to generate response: {e}"}
+        return JSONResponse({"error": f"Failed to generate response: {e}"})
 
-# --- Embed Interface (Chat-like UI) ---
+# --- Embed Interface ---
 @app.get("/embed", response_class=HTMLResponse)
 def embed_interface():
     html_content = """
@@ -111,21 +94,21 @@ def embed_interface():
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
-            .chat-container { max-width: 700px; margin: 0 auto; background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
-            .messages { height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 20px; border-radius: 8px; background: #fafafa; }
-            .message { margin-bottom: 10px; padding: 8px 12px; border-radius: 15px; max-width: 80%; }
-            .user-message { background: #007bff; color: white; margin-left: auto; text-align: right; }
-            .bot-message { background: #e9ecef; color: #333; }
-            .input-area { display: flex; gap: 10px; }
-            #user-input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; }
-            #send-btn, #clear-btn { padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; }
-            #send-btn { background: #007bff; color: white; }
-            #clear-btn { background: #6c757d; color: white; }
-            #send-btn:disabled { background: #ccc; cursor: default; }
-            .accordion { background: #007bff; color: white; cursor: pointer; padding: 10px; width: 100%; text-align: left; border: none; outline: none; border-radius: 8px; margin-bottom: 10px; }
-            .panel { padding: 0 10px; display: none; background-color: #f1f1f1; overflow: hidden; border-radius: 8px; margin-bottom: 10px; }
-            .panel input, .panel select { width: 100%; padding: 8px; margin: 5px 0; border-radius: 8px; border: 1px solid #ccc; }
+            body { font-family: Arial, sans-serif; margin:0; padding:20px; background:#f5f5f5; }
+            .chat-container { max-width:700px; margin:0 auto; background:white; border-radius:12px; padding:20px; box-shadow:0 4px 15px rgba(0,0,0,0.15); }
+            .messages { height:400px; overflow-y:auto; border:1px solid #ddd; padding:10px; margin-bottom:20px; border-radius:8px; background:#fafafa; }
+            .message { margin-bottom:10px; padding:8px 12px; border-radius:15px; max-width:80%; }
+            .user-message { background:#007bff; color:white; margin-left:auto; text-align:right; }
+            .bot-message { background:#e9ecef; color:#333; }
+            .input-area { display:flex; gap:10px; }
+            #user-input { flex:1; padding:10px; border:1px solid #ddd; border-radius:20px; }
+            #send-btn, #clear-btn { padding:10px 20px; border:none; border-radius:20px; cursor:pointer; }
+            #send-btn { background:#007bff; color:white; }
+            #clear-btn { background:#6c757d; color:white; }
+            #send-btn:disabled { background:#ccc; cursor:default; }
+            .accordion { background:#007bff; color:white; cursor:pointer; padding:10px; width:100%; text-align:left; border:none; outline:none; border-radius:8px; margin-bottom:10px; }
+            .panel { padding:0 10px; display:none; background-color:#f1f1f1; overflow:hidden; border-radius:8px; margin-bottom:10px; }
+            .panel input, .panel select { width:100%; padding:8px; margin:5px 0; border-radius:8px; border:1px solid #ccc; }
         </style>
     </head>
     <body>
@@ -198,44 +181,3 @@ def embed_interface():
     </html>
     """
     return HTMLResponse(content=html_content)
-
-# --- Gradio interface ---
-def gradio_chat(user_input, history):
-    if not user_input.strip():
-        return history, history
-    tokenizer, model, active_model = load_model()
-    context_parts = []
-    for exchange in history[-3:]:
-        context_parts.append(f"User: {exchange[0]}")
-        context_parts.append(f"NeurodivergentHelper: {exchange[1]}")
-    full_prompt = f"""{SYSTEM_PROMPT}
-
-{'\n'.join(context_parts)}
-User: {user_input}
-NeurodivergentHelper:"""
-    try:
-        inputs = tokenizer(full_prompt, return_tensors="pt", truncation=True, max_length=2048).to(model.device)
-        outputs = model.generate(**inputs, max_new_tokens=200, temperature=0.7, do_sample=True, pad_token_id=tokenizer.eos_token_id)
-        response_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
-        if "NeurodivergentHelper:" in response_text:
-            response_text = response_text.split("NeurodivergentHelper:")[-1].strip()
-        history.append([user_input, response_text])
-        return history, history
-    except:
-        error_response = "Error generating response."
-        history.append([user_input, error_response])
-        return history, history
-
-gradio_interface = gr.Blocks()
-with gradio_interface:
-    with gr.Row():
-        chatbot = gr.Chatbot()
-    with gr.Row():
-        txt = gr.Textbox(show_label=False, placeholder="Type your message here...")
-        submit_btn = gr.Button("Send")
-    submit_btn.click(gradio_chat, inputs=[txt, chatbot], outputs=[chatbot, chatbot])
-    txt.submit(gradio_chat, inputs=[txt, chatbot], outputs=[chatbot, chatbot])
-
-@app.get("/gradio", response_class=HTMLResponse)
-def gradio_app():
-    return HTMLResponse(gradio_interface.launch(share=False, inline=True)[0])
