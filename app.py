@@ -41,9 +41,11 @@ def get_session_context(session_id: str) -> str:
 # --- API Root ---
 @app.get("/")
 def root():
-    return {"message": "NeurodivergentHelper API is live!",
-            "model": get_active_model_name(),
-            "version": "1.0.0"}
+    return {
+        "message": "NeurodivergentHelper API is live!",
+        "model": get_active_model_name(),
+        "version": "1.0.0"
+    }
 
 # --- Query Endpoint ---
 @app.post("/query")
@@ -64,7 +66,15 @@ async def query(request: Request):
     tone = settings.get("tone", "patient")
     topics = settings.get("topics", "")
 
-    full_prompt = f"{SYSTEM_PROMPT}\n\nUser: {nickname}\nTone: {tone}\nTopics: {topics}\n{context}\nUser: {user_input}\nNeurodivergentHelper:"
+    # --- Corrected prompt handling ---
+    full_prompt = f"""{SYSTEM_PROMPT}
+
+User: {nickname}
+Tone: {tone}
+Topics: {topics}
+{context}
+User: {user_input}
+NeurodivergentHelper:"""
 
     try:
         inputs = tokenizer(full_prompt, return_tensors="pt", truncation=True, max_length=2048).to(model.device)
