@@ -238,7 +238,7 @@ set MODEL_NAME=microsoft/DialoGPT-small  # Optional
 ### 5. Run Locally (Python)
 
 ```
-python app.py
+py app.py
 ```
 
 > Access the interface at `http://localhost:7860`, embed at `/embed`, and API docs at `/docs`.
