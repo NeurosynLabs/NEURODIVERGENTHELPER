@@ -3,53 +3,40 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import os
 import yaml
 
-# --- Load configuration from YAML ---
-PROMPT_FILE = os.path.join(os.path.dirname(__file__), "NeurodivergentHelper.prompt.yml")
-with open(PROMPT_FILE, "r", encoding="utf-8") as f:
-    yaml_data = yaml.safe_load(f)
-
-# System prompt
-SYSTEM_PROMPT = ""
-for msg in yaml_data.get("messages", []):
-    if msg.get("role") == "system":
-        SYSTEM_PROMPT = msg.get("content", "").strip()
-        break
-
-# Suggested model (from YAML, optional)
-SUGGESTED_MODEL = yaml_data.get("model", None)
-
-# --- Hardware-aware default ---
-CPU_FRIENDLY_MODEL = "NousResearch/Nous-Hermes-CPU"  # Works on all CPUs
-GPU_FRIENDLY_MODEL = "NousResearch/Nous-Hermes-7B"   # Larger, GPU recommended
-
+# --- Configuration ---
+DEFAULT_MODEL_NAME = "NousResearch/Nous-Hermes-CPU"  # CPU-friendly
 MAX_HISTORY = 5
+
+# Cache to avoid reloading models
 _model_cache = {}
 
-def get_device():
-    """Detect available device. Defaults to CPU if GPU not usable."""
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-    return torch.device("cpu")
+# --- Load SYSTEM_PROMPT from YAML ---
+PROMPT_FILE = os.environ.get("PROMPT_URL", "NeurodivergentHelper.prompt.yml")
 
-def select_model():
-    """Choose model based on hardware and YAML suggestion."""
-    device = get_device()
-    if device.type == "cuda":
-        # Use GPU-friendly model if GPU exists
-        return GPU_FRIENDLY_MODEL
-    else:
-        # Use YAML suggestion if compatible, else CPU-friendly
-        if SUGGESTED_MODEL:
-            return SUGGESTED_MODEL
-        return CPU_FRIENDLY_MODEL
+try:
+    with open(PROMPT_FILE, "r", encoding="utf-8") as f:
+        prompt_data = yaml.safe_load(f)
+        SYSTEM_PROMPT = prompt_data["messages"][0]["content"]
+except Exception as e:
+    SYSTEM_PROMPT = "You are NeurodivergentHelper..."
+    print(f"Warning: Failed to load YAML prompt. Using default SYSTEM_PROMPT. Error: {e}")
+
+
+def get_device():
+    """Choose GPU if available, else CPU."""
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 def load_model(model_name=None):
-    """Load tokenizer and model, caching for reuse."""
-    model_name = model_name or select_model()
+    """
+    Loads model and tokenizer. Returns (tokenizer, model, model_name)
+    """
+    model_name = model_name or DEFAULT_MODEL_NAME
     if model_name in _model_cache:
         return _model_cache[model_name]
 
     device = get_device()
+
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
     model.to(device)
@@ -58,11 +45,15 @@ def load_model(model_name=None):
     _model_cache[model_name] = (tokenizer, model, model_name)
     return tokenizer, model, model_name
 
+
 def get_active_model_name():
-    return list(_model_cache.keys())[0] if _model_cache else select_model()
+    """Returns the currently loaded model name."""
+    return list(_model_cache.keys())[0] if _model_cache else DEFAULT_MODEL_NAME
+
 
 def get_tokenizer(model_name=None):
     return load_model(model_name)[0]
+
 
 def get_model(model_name=None):
     return load_model(model_name)[1]
